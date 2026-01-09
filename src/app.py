@@ -855,4 +855,4 @@ def delete_old_plots(selected_metric):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, dev_tools_hot_reload=False, port=8049) #, dev_tools_hot_reload=False
+    app.run(debug=True, dev_tools_hot_reload=False) #, dev_tools_hot_reload=False
