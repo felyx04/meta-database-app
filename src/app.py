@@ -11,7 +11,12 @@ import plotting
 import pyleoclim as pyleo
 import os
 
-df = pd.read_csv("assets/all-data.csv", header=[0,1])
+# df = pd.read_csv("assets/all-data.csv", header=[0,1])
+
+# Load data from GitHub Release
+DATA_URL = "https://github.com/felyx04/meta-database-app/releases/download/v1.0-data/all-data.csv"
+print("Loading data from GitHub Release...")
+df = pd.read_csv(DATA_URL, header=[0,1])
 
 app = dash.Dash(__name__) #, external_stylesheets=[dbc.themes.BOOTSTRAP]
 server = app.server
@@ -853,4 +858,4 @@ def delete_old_plots(selected_metric):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, dev_tools_hot_reload=False, port=8051) #, dev_tools_hot_reload=False
+    app.run(debug=True, dev_tools_hot_reload=False) #, dev_tools_hot_reload=False
