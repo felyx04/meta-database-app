@@ -4,4 +4,3 @@ dash_bootstrap_components==2.0.3
 pyleoclim==1.1.0
 whittaker_eilers==0.2.0
 gunicorn
-dash-tools
