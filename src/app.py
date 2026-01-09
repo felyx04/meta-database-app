@@ -11,7 +11,7 @@ import plotting
 import pyleoclim as pyleo
 import os
 
-df = pd.read_csv("assets/all-data.csv", header=[0,1])
+# df = pd.read_csv("assets/all-data.csv", header=[0,1])
 
 app = dash.Dash(__name__) #, external_stylesheets=[dbc.themes.BOOTSTRAP]
 server = app.server
@@ -203,14 +203,14 @@ def update_plot(selected_metric, smooth, lam, bounds):
         
 
     # Extract selected data
-    age = df[(selected_metric, 'age')].to_numpy()
-    data = df[(selected_metric, 'data')].to_numpy()
-    y_invert = df.loc[0, (selected_metric, 'y_invert')]
-    # length = df.loc[0, (selected_metric, 'len')]
+    age = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'age')].to_numpy()
+    data = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'data')].to_numpy()
+    y_invert = pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'y_invert')]
+    # length = pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'len')]
 
-    age_probstack = df[('Probstack', 'age')].to_numpy()
-    data_probstack = df[('Probstack', 'data')].to_numpy()
-    y_invert_probstack = df.loc[0, ('Probstack', 'y_invert')]
+    age_probstack = pd.read_csv("assets/all-data.csv", header=[0,1])[('Probstack', 'age')].to_numpy()
+    data_probstack = pd.read_csv("assets/all-data.csv", header=[0,1])[('Probstack', 'data')].to_numpy()
+    y_invert_probstack = pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, ('Probstack', 'y_invert')]
     
     if smooth:
         # store raw data
@@ -379,7 +379,7 @@ def update_plot(selected_metric, smooth, lam, bounds):
     fig.update_layout(
         margin=dict(r=0, t=40, l=0, b=40),
         title=dict(
-            text=df.loc[0, (selected_metric, 'name')],
+            text=pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'name')],
             x=0.5,
             xanchor='center',
             font=dict(
@@ -389,7 +389,7 @@ def update_plot(selected_metric, smooth, lam, bounds):
             ) 
         ),
         xaxis=dict(title='Age (ka)', range=[0, 1500], showgrid=False),
-        yaxis=dict(title=df.loc[0, (selected_metric, 'variable')], showgrid=False),
+        yaxis=dict(title=pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'variable')], showgrid=False),
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -400,8 +400,8 @@ def update_plot(selected_metric, smooth, lam, bounds):
     )
 
     # Reverse y-axis if needed
-    fig.update_yaxes(title_text=df.loc[0, ('Probstack', 'variable')], secondary_y=True)
-    if df.loc[0, (selected_metric, 'y_invert')]:
+    fig.update_yaxes(title_text=pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, ('Probstack', 'variable')], secondary_y=True)
+    if pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'y_invert')]:
         fig.update_yaxes(autorange='reversed', secondary_y=False)
 
     # Secondary y-axis inverted (Probstack)
@@ -421,8 +421,8 @@ def update_average_resolution(selected_metric):
         return None
 
     # Extract selected data
-    age = df[(selected_metric, 'age')].to_numpy()
-    data = df[(selected_metric, 'data')].to_numpy()
+    age = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'age')].to_numpy()
+    data = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'data')].to_numpy()
 
     # Only use time interval 0 <=t <= 1.5 Ma
     mask = np.where(np.logical_and(0<=age,age<=1500))
@@ -485,8 +485,8 @@ def update_optimal_lambda(selected_metric, smooth, lam):
         return None
 
     # Extract selected data
-    age = df[(selected_metric, 'age')].to_numpy()
-    data = df[(selected_metric, 'data')].to_numpy()
+    age = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'age')].to_numpy()
+    data = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'data')].to_numpy()
     
     if smooth:
         # apply smoothing 
@@ -515,9 +515,9 @@ def update_IG_table(selected_metric, smooth, lam, bounds):
         return None
 
     # Extract selected data
-    age = df[(selected_metric, 'age')].to_numpy()
-    data = df[(selected_metric, 'data')].to_numpy()
-    y_invert = df.loc[0, (selected_metric, 'y_invert')]
+    age = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'age')].to_numpy()
+    data = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'data')].to_numpy()
+    y_invert = pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'y_invert')]
 
     if smooth:
         # apply smoothing 
@@ -536,7 +536,7 @@ def update_IG_table(selected_metric, smooth, lam, bounds):
     elif bounds=='Prob-stack2':
         extrema = plotting.calc_extrema_only_terminations(data_input, plotting.bounds_probstack2)
 
-    df_IG, df_G, df_amplitude = plotting.create_dfs(df, selected_metric, extrema, y_invert, bounds)
+    df_IG, df_G, df_amplitude = plotting.create_dfs(pd.read_csv("assets/all-data.csv", header=[0,1]), selected_metric, extrema, y_invert, bounds)
 
     # Create and style DataFrame
     html_string = f"""
@@ -598,9 +598,9 @@ def update_extrema_plot(selected_metric, smooth, lam, bounds):
         return go.Figure()
 
     # Extract selected data
-    age = df[(selected_metric, 'age')].to_numpy()
-    data = df[(selected_metric, 'data')].to_numpy()
-    y_invert = df.loc[0, (selected_metric, 'y_invert')]
+    age = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'age')].to_numpy()
+    data = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'data')].to_numpy()
+    y_invert = pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'y_invert')]
     
     if smooth:
         # store raw data
@@ -672,7 +672,7 @@ def update_extrema_plot(selected_metric, smooth, lam, bounds):
     fig.update_layout(
         margin=dict(r=0, t=40, l=0, b=40),
         title=dict(
-            text=df.loc[0, (selected_metric, 'name')],
+            text=pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'name')],
             x=0.5,
             xanchor='center',
             font=dict(
@@ -682,7 +682,7 @@ def update_extrema_plot(selected_metric, smooth, lam, bounds):
             )
         ),
         # xaxis=dict(title='Period (kyr)', showgrid=True),
-        # yaxis=dict(title=df.loc[0, (selected_metric, 'variable')], showgrid=False),
+        # yaxis=dict(title=pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'variable')], showgrid=False),
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -693,10 +693,10 @@ def update_extrema_plot(selected_metric, smooth, lam, bounds):
     )
     # Update x/y labels 
     fig.update_xaxes(title_text="Age (ka)")
-    fig.update_yaxes(title_text=df.loc[0, (selected_metric, 'variable')])
+    fig.update_yaxes(title_text=pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'variable')])
 
     # Reverse y-axis if needed
-    if df.loc[0, (selected_metric, 'y_invert')]:
+    if pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'y_invert')]:
         fig.update_yaxes(autorange='reversed', row=1, col=1)
     else:
         fig.update_yaxes(autorange='reversed', row=1, col=2)
@@ -716,8 +716,8 @@ def update_freq_plot(selected_metric, smooth, lam):
         return go.Figure()
 
     # Extract selected data
-    age = df[(selected_metric, 'age')].to_numpy()
-    data = df[(selected_metric, 'data')].to_numpy()
+    age = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'age')].to_numpy()
+    data = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'data')].to_numpy()
 
     if smooth:
         # apply smoothing 
@@ -733,7 +733,7 @@ def update_freq_plot(selected_metric, smooth, lam):
     fig = make_subplots(rows=1, cols=2, subplot_titles=[f'Pre MPT: 1 Ma - {np.min([np.nanmax(age),1500])*1e-3:.1f} Ma', 'Post MPT: 800 ka - 0 ka'])
 
     if selected_metric!='LR04':
-        (f_LombScargle_postMPT_LR04, P_LombScargle_postMPT_LR04), (f_LombScargle_preMPT_LR04, P_LombScargle_preMPT_LR04) = plotting.calc_lombscargle(df[('LR04','age')], df[('LR04','data')])
+        (f_LombScargle_postMPT_LR04, P_LombScargle_postMPT_LR04), (f_LombScargle_preMPT_LR04, P_LombScargle_preMPT_LR04) = plotting.calc_lombscargle(pd.read_csv("assets/all-data.csv", header=[0,1])[('LR04','age')], pd.read_csv("assets/all-data.csv", header=[0,1])[('LR04','data')])
 
         fig.add_trace(go.Scatter(
             x=1/f_LombScargle_preMPT_LR04,
@@ -781,7 +781,7 @@ def update_freq_plot(selected_metric, smooth, lam):
     fig.update_layout(
         margin=dict(r=0, t=40, l=0, b=40),
         title=dict(
-            text=df.loc[0, (selected_metric, 'name')],
+            text=pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'name')],
             x=0.5,
             xanchor='center',
             font=dict(
@@ -791,7 +791,7 @@ def update_freq_plot(selected_metric, smooth, lam):
             ) 
         ),
         # xaxis=dict(title='Period (kyr)', showgrid=True),
-        # yaxis=dict(title=df.loc[0, (selected_metric, 'variable')], showgrid=False),
+        # yaxis=dict(title=pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'variable')], showgrid=False),
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -819,11 +819,11 @@ def update_pyleo_plot(selected_metric, smooth, lam):
         return ''
 
     # Extract selected data
-    age = df[(selected_metric, 'age')].to_numpy()
-    data = df[(selected_metric, 'data')].to_numpy()
-    y_invert = df.loc[0, (selected_metric, 'y_invert')]
-    name = df.loc[0,(selected_metric, 'name')]
-    variable = df.loc[0,(selected_metric, 'variable')]
+    age = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'age')].to_numpy()
+    data = pd.read_csv("assets/all-data.csv", header=[0,1])[(selected_metric, 'data')].to_numpy()
+    y_invert = pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0, (selected_metric, 'y_invert')]
+    name = pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0,(selected_metric, 'name')]
+    variable = pd.read_csv("assets/all-data.csv", header=[0,1]).loc[0,(selected_metric, 'variable')]
 
     if smooth:
         # apply smoothing 
