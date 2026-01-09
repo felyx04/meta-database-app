@@ -174,19 +174,19 @@ app.layout = dbc.Container([
             html.Iframe(id='ig-table', style={"width": "100%", "height": "600px", "border": "none"})  # , "height": "600px", 
         ])
     ]),
-    dbc.Row([
-        dbc.Col(dcc.Graph(id='extrema-plots'), style={'width':'90%'}),  # width=12
-    ]),
-    dbc.Row([
-        dbc.Col(dcc.Graph(id='freq-plots'), style={'width':'90%'}),  # width=12,
-        # dbc.Col(dcc.Graph(id='pyleo-plot'), style={'width':'30%'})  # width=12, 
-    ]),
     # dbc.Row([
-    #     dbc.Col(dcc.Graph(id='pyleo-plot'), style={'width':'60%'})  # width=12, 
+    #     dbc.Col(dcc.Graph(id='extrema-plots'), style={'width':'90%'}),  # width=12
     # ]),
-    dbc.Row([
-        html.Img(id='pyleo-plot', alt='My Image', style={'width=':'20%', 'zoom':'30%'})
-        ])
+    # dbc.Row([
+    #     dbc.Col(dcc.Graph(id='freq-plots'), style={'width':'90%'}),  # width=12,
+    #     # dbc.Col(dcc.Graph(id='pyleo-plot'), style={'width':'30%'})  # width=12, 
+    # ]),
+    # # dbc.Row([
+    # #     dbc.Col(dcc.Graph(id='pyleo-plot'), style={'width':'60%'})  # width=12, 
+    # # ]),
+    # dbc.Row([
+    #     html.Img(id='pyleo-plot', alt='My Image', style={'width=':'20%', 'zoom':'30%'})
+    #     ])
 ], fluid=True)
 
 # Create Callbacks (Flask Route)
@@ -587,266 +587,266 @@ def update_IG_table(selected_metric, smooth, lam, bounds):
     return html_string
 
 
-# Extrema Plots Callback
-@app.callback(
-    Output('extrema-plots', 'figure'),
-    Input('metric-dropdown', 'value'),
-    Input('smooth-checkbox', 'value'),
-    Input('range', 'value'),
-    Input('mis-bounds-radio-items', 'value')
-)
-def update_extrema_plot(selected_metric, smooth, lam, bounds):
-    if selected_metric is None:
-        return go.Figure()
+# # Extrema Plots Callback
+# @app.callback(
+#     Output('extrema-plots', 'figure'),
+#     Input('metric-dropdown', 'value'),
+#     Input('smooth-checkbox', 'value'),
+#     Input('range', 'value'),
+#     Input('mis-bounds-radio-items', 'value')
+# )
+# def update_extrema_plot(selected_metric, smooth, lam, bounds):
+#     if selected_metric is None:
+#         return go.Figure()
 
-    # Extract selected data
-    age = df[(selected_metric, 'age')].to_numpy()
-    data = df[(selected_metric, 'data')].to_numpy()
-    y_invert = df2.loc[0, (selected_metric, 'y_invert')]
+#     # Extract selected data
+#     age = df[(selected_metric, 'age')].to_numpy()
+#     data = df[(selected_metric, 'data')].to_numpy()
+#     y_invert = df2.loc[0, (selected_metric, 'y_invert')]
     
-    if smooth:
-        # store raw data
-        age_raw = age
-        data_raw = data
+#     if smooth:
+#         # store raw data
+#         age_raw = age
+#         data_raw = data
 
-        # apply smoothing 
-        age, data = plotting.smoothing(age_raw, data_raw, lam)
+#         # apply smoothing 
+#         age, data = plotting.smoothing(age_raw, data_raw, lam)
 
-    # Calculate extrema
-    data_input = np.array([
-          [age, data, y_invert], 
-       ], dtype=object)
+#     # Calculate extrema
+#     data_input = np.array([
+#           [age, data, y_invert], 
+#        ], dtype=object)
 
-    # calculate extrema    
-    if bounds=='LR04':
-        extrema = plotting.calc_extrema(data_input, plotting.mis_bounds)
-    elif bounds=='Prob-stack':
-        extrema = plotting.calc_extrema(data_input, np.hstack([0,plotting.bounds_probstack[:,1]]))
-    elif bounds=='Prob-stack2':
-        extrema = plotting.calc_extrema_only_terminations(data_input, plotting.bounds_probstack2)
+#     # calculate extrema    
+#     if bounds=='LR04':
+#         extrema = plotting.calc_extrema(data_input, plotting.mis_bounds)
+#     elif bounds=='Prob-stack':
+#         extrema = plotting.calc_extrema(data_input, np.hstack([0,plotting.bounds_probstack[:,1]]))
+#     elif bounds=='Prob-stack2':
+#         extrema = plotting.calc_extrema_only_terminations(data_input, plotting.bounds_probstack2)
 
-    # get ids of IGs and Gs
-    extrema_IGs_id = np.where(extrema[0,:,2]==1)[0]
-    extrema_Gs_id = np.where(extrema[0,:,2]==0)[0]
+#     # get ids of IGs and Gs
+#     extrema_IGs_id = np.where(extrema[0,:,2]==1)[0]
+#     extrema_Gs_id = np.where(extrema[0,:,2]==0)[0]
 
-    # get IG and G extrema seperately
-    extrema_IGs = extrema[0][extrema_IGs_id,:2]
-    extrema_Gs = extrema[0][extrema_Gs_id,:2]
+#     # get IG and G extrema seperately
+#     extrema_IGs = extrema[0][extrema_IGs_id,:2]
+#     extrema_Gs = extrema[0][extrema_Gs_id,:2]
 
-    if np.nanmax(age) < 1000:
-        return go.Figure()
+#     if np.nanmax(age) < 1000:
+#         return go.Figure()
 
-    # Initialize figure
-    fig = make_subplots(rows=1, cols=3, subplot_titles=[f'Interglacial extrema', 'Glacial extrema', 'Termination amplitude'])
+#     # Initialize figure
+#     fig = make_subplots(rows=1, cols=3, subplot_titles=[f'Interglacial extrema', 'Glacial extrema', 'Termination amplitude'])
 
-    fig.add_trace(go.Scatter(
-        # x=extrema[0][0::2, 0],
-        # y=extrema[0][0::2, 1],
-        x=extrema_IGs[:,0], 
-        y=extrema_IGs[:,1], 
-        mode='markers',
-        name='Interglacial extrema',
-        marker=dict(size=10, color='red', symbol='circle')
-        ), row=1, col=1
-    )
+#     fig.add_trace(go.Scatter(
+#         # x=extrema[0][0::2, 0],
+#         # y=extrema[0][0::2, 1],
+#         x=extrema_IGs[:,0], 
+#         y=extrema_IGs[:,1], 
+#         mode='markers',
+#         name='Interglacial extrema',
+#         marker=dict(size=10, color='red', symbol='circle')
+#         ), row=1, col=1
+#     )
 
-    fig.add_trace(go.Scatter(
-        # x=extrema[0][1::2, 0],
-        # y=extrema[0][1::2, 1],
-        x=extrema_Gs[:,0], 
-        y=extrema_Gs[:,1], 
-        mode='markers',
-        name='Glacial extrema',
-        marker=dict(size=10, color='blue', symbol='circle')
-        ), row=1, col=2
-    )
+#     fig.add_trace(go.Scatter(
+#         # x=extrema[0][1::2, 0],
+#         # y=extrema[0][1::2, 1],
+#         x=extrema_Gs[:,0], 
+#         y=extrema_Gs[:,1], 
+#         mode='markers',
+#         name='Glacial extrema',
+#         marker=dict(size=10, color='blue', symbol='circle')
+#         ), row=1, col=2
+#     )
 
-    fig.add_trace(go.Scatter(
-        x=(np.absolute(extrema_Gs[:,0]+extrema_IGs[:-1,0]))/2, 
-        y=np.absolute(extrema_Gs[:,1]-extrema_IGs[:-1,1]), 
-        mode='markers',
-        name='Termination amplitude',
-        marker=dict(size=10, color='purple', symbol='circle')
-        ), row=1, col=3
-    )
+#     fig.add_trace(go.Scatter(
+#         x=(np.absolute(extrema_Gs[:,0]+extrema_IGs[:-1,0]))/2, 
+#         y=np.absolute(extrema_Gs[:,1]-extrema_IGs[:-1,1]), 
+#         mode='markers',
+#         name='Termination amplitude',
+#         marker=dict(size=10, color='purple', symbol='circle')
+#         ), row=1, col=3
+#     )
 
-    # Apply layout
-    fig.update_layout(
-        margin=dict(r=0, t=40, l=0, b=40),
-        title=dict(
-            text=df2.loc[0, (selected_metric, 'name')],
-            x=0.5,
-            xanchor='center',
-            font=dict(
-                size=26,  # Set the font size for the title
-                # color='blue',  # Optional: Set the font color
-                # family='Arial' # Optional: Set the font family
-            )
-        ),
-        # xaxis=dict(title='Period (kyr)', showgrid=True),
-        # yaxis=dict(title=df2.loc[0, (selected_metric, 'variable')], showgrid=False),
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=-0.2,
-            xanchor="left",
-            x=0
-        )
-    )
-    # Update x/y labels 
-    fig.update_xaxes(title_text="Age (ka)")
-    fig.update_yaxes(title_text=df2.loc[0, (selected_metric, 'variable')])
+#     # Apply layout
+#     fig.update_layout(
+#         margin=dict(r=0, t=40, l=0, b=40),
+#         title=dict(
+#             text=df2.loc[0, (selected_metric, 'name')],
+#             x=0.5,
+#             xanchor='center',
+#             font=dict(
+#                 size=26,  # Set the font size for the title
+#                 # color='blue',  # Optional: Set the font color
+#                 # family='Arial' # Optional: Set the font family
+#             )
+#         ),
+#         # xaxis=dict(title='Period (kyr)', showgrid=True),
+#         # yaxis=dict(title=df2.loc[0, (selected_metric, 'variable')], showgrid=False),
+#         legend=dict(
+#             orientation="h",
+#             yanchor="bottom",
+#             y=-0.2,
+#             xanchor="left",
+#             x=0
+#         )
+#     )
+#     # Update x/y labels 
+#     fig.update_xaxes(title_text="Age (ka)")
+#     fig.update_yaxes(title_text=df2.loc[0, (selected_metric, 'variable')])
 
-    # Reverse y-axis if needed
-    if df2.loc[0, (selected_metric, 'y_invert')]:
-        fig.update_yaxes(autorange='reversed', row=1, col=1)
-    else:
-        fig.update_yaxes(autorange='reversed', row=1, col=2)
-
-
-    return fig
-
-# LombScargle Plots Callback
-@app.callback(
-    Output('freq-plots', 'figure'),
-    Input('metric-dropdown', 'value'),
-    Input('smooth-checkbox', 'value'),
-    Input('range', 'value')
-)
-def update_freq_plot(selected_metric, smooth, lam):
-    if selected_metric is None:
-        return go.Figure()
-
-    # Extract selected data
-    age = df[(selected_metric, 'age')].to_numpy()
-    data = df[(selected_metric, 'data')].to_numpy()
-
-    if smooth:
-        # apply smoothing 
-        age, data = plotting.smoothing(age, data, lam)
-
-    if np.nanmax(age) < 1000:
-        return go.Figure()
-
-    # LombScargle 
-    (f_LombScargle_postMPT, P_LombScargle_postMPT), (f_LombScargle_preMPT, P_LombScargle_preMPT) = plotting.calc_lombscargle(age, data)
-
-    # Initialize figure
-    fig = make_subplots(rows=1, cols=2, subplot_titles=[f'Pre MPT: 1 Ma - {np.min([np.nanmax(age),1500])*1e-3:.1f} Ma', 'Post MPT: 800 ka - 0 ka'])
-
-    if selected_metric!='LR04':
-        (f_LombScargle_postMPT_LR04, P_LombScargle_postMPT_LR04), (f_LombScargle_preMPT_LR04, P_LombScargle_preMPT_LR04) = plotting.calc_lombscargle(df[('LR04','age')], df[('LR04','data')])
-
-        fig.add_trace(go.Scatter(
-            x=1/f_LombScargle_preMPT_LR04,
-            y=P_LombScargle_preMPT_LR04,
-            mode='lines',
-            showlegend=False,
-            line=dict(color='blue', width=2)
-            ), row=1, col=1
-        )
-
-        fig.add_trace(go.Scatter(
-            x=1/f_LombScargle_postMPT_LR04,
-            y=P_LombScargle_postMPT_LR04,
-            mode='lines',
-            name='LR04',
-            line=dict(color='blue', width=2),
-            ), row=1, col=2
-        )
-
-    # Pre MPT Plot
-    fig.add_trace(go.Scatter(
-        x=1/f_LombScargle_preMPT,
-        y=P_LombScargle_preMPT,
-        mode='lines',
-        showlegend=False,
-        line=dict(color='orange', width=2)
-        ), row=1, col=1
-    )
-    for orb_freq in [100, 41, 23]:
-        fig.add_vline(x=orb_freq, line_dash="dash", line_color="grey")
-
-    # Post MPT Plot
-    fig.add_trace(go.Scatter(
-        x=1/f_LombScargle_postMPT,
-        y=P_LombScargle_postMPT,
-        mode='lines',
-        name=selected_metric,
-        line=dict(color='orange', width=2),
-        ), row=1, col=2
-    )
-    for orb_freq in [100, 41, 23]:
-        fig.add_vline(x=orb_freq, line_dash="dash", line_color="grey")
-
-    # Apply layout
-    fig.update_layout(
-        margin=dict(r=0, t=40, l=0, b=40),
-        title=dict(
-            text=df2.loc[0, (selected_metric, 'name')],
-            x=0.5,
-            xanchor='center',
-            font=dict(
-                size=26,  # Set the font size for the title
-                # color='blue',  # Optional: Set the font color
-                # family='Arial' # Optional: Set the font family
-            ) 
-        ),
-        # xaxis=dict(title='Period (kyr)', showgrid=True),
-        # yaxis=dict(title=df2.loc[0, (selected_metric, 'variable')], showgrid=False),
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=-0.2,
-            xanchor="left",
-            x=0
-        )
-    )
-    # Update x/y labels 
-    fig.update_xaxes(title_text="Period (kyr)")
-    fig.update_yaxes(title_text="Spectral power (a.u.)")
-
-    return fig
+#     # Reverse y-axis if needed
+#     if df2.loc[0, (selected_metric, 'y_invert')]:
+#         fig.update_yaxes(autorange='reversed', row=1, col=1)
+#     else:
+#         fig.update_yaxes(autorange='reversed', row=1, col=2)
 
 
-# PyleoCLim Plot Callback
-@app.callback(
-    Output('pyleo-plot', 'src'),
-    Input('metric-dropdown', 'value'),
-    Input('smooth-checkbox', 'value'),
-    Input('range', 'value')
-)
-def update_pyleo_plot(selected_metric, smooth, lam):
-    if selected_metric is None:
-        return ''
+#     return fig
 
-    # Extract selected data
-    age = df[(selected_metric, 'age')].to_numpy()
-    data = df[(selected_metric, 'data')].to_numpy()
-    y_invert = df2.loc[0, (selected_metric, 'y_invert')]
-    name = df2.loc[0,(selected_metric, 'name')]
-    variable = df2.loc[0,(selected_metric, 'variable')]
+# # LombScargle Plots Callback
+# @app.callback(
+#     Output('freq-plots', 'figure'),
+#     Input('metric-dropdown', 'value'),
+#     Input('smooth-checkbox', 'value'),
+#     Input('range', 'value')
+# )
+# def update_freq_plot(selected_metric, smooth, lam):
+#     if selected_metric is None:
+#         return go.Figure()
 
-    if smooth:
-        # apply smoothing 
-        age, data = plotting.smoothing(age, data, lam)
+#     # Extract selected data
+#     age = df[(selected_metric, 'age')].to_numpy()
+#     data = df[(selected_metric, 'data')].to_numpy()
 
-    # only use past 1.5 Ma
-    mask = age <= 1500
-    age = age[mask]
-    data = data[mask]
+#     if smooth:
+#         # apply smoothing 
+#         age, data = plotting.smoothing(age, data, lam)
 
-    # create figure with pyleoclim
-    file_path = plotting.pyleo_plot(age, data, y_invert, variable, name)
+#     if np.nanmax(age) < 1000:
+#         return go.Figure()
 
-    return file_path
+#     # LombScargle 
+#     (f_LombScargle_postMPT, P_LombScargle_postMPT), (f_LombScargle_preMPT, P_LombScargle_preMPT) = plotting.calc_lombscargle(age, data)
+
+#     # Initialize figure
+#     fig = make_subplots(rows=1, cols=2, subplot_titles=[f'Pre MPT: 1 Ma - {np.min([np.nanmax(age),1500])*1e-3:.1f} Ma', 'Post MPT: 800 ka - 0 ka'])
+
+#     if selected_metric!='LR04':
+#         (f_LombScargle_postMPT_LR04, P_LombScargle_postMPT_LR04), (f_LombScargle_preMPT_LR04, P_LombScargle_preMPT_LR04) = plotting.calc_lombscargle(df[('LR04','age')], df[('LR04','data')])
+
+#         fig.add_trace(go.Scatter(
+#             x=1/f_LombScargle_preMPT_LR04,
+#             y=P_LombScargle_preMPT_LR04,
+#             mode='lines',
+#             showlegend=False,
+#             line=dict(color='blue', width=2)
+#             ), row=1, col=1
+#         )
+
+#         fig.add_trace(go.Scatter(
+#             x=1/f_LombScargle_postMPT_LR04,
+#             y=P_LombScargle_postMPT_LR04,
+#             mode='lines',
+#             name='LR04',
+#             line=dict(color='blue', width=2),
+#             ), row=1, col=2
+#         )
+
+#     # Pre MPT Plot
+#     fig.add_trace(go.Scatter(
+#         x=1/f_LombScargle_preMPT,
+#         y=P_LombScargle_preMPT,
+#         mode='lines',
+#         showlegend=False,
+#         line=dict(color='orange', width=2)
+#         ), row=1, col=1
+#     )
+#     for orb_freq in [100, 41, 23]:
+#         fig.add_vline(x=orb_freq, line_dash="dash", line_color="grey")
+
+#     # Post MPT Plot
+#     fig.add_trace(go.Scatter(
+#         x=1/f_LombScargle_postMPT,
+#         y=P_LombScargle_postMPT,
+#         mode='lines',
+#         name=selected_metric,
+#         line=dict(color='orange', width=2),
+#         ), row=1, col=2
+#     )
+#     for orb_freq in [100, 41, 23]:
+#         fig.add_vline(x=orb_freq, line_dash="dash", line_color="grey")
+
+#     # Apply layout
+#     fig.update_layout(
+#         margin=dict(r=0, t=40, l=0, b=40),
+#         title=dict(
+#             text=df2.loc[0, (selected_metric, 'name')],
+#             x=0.5,
+#             xanchor='center',
+#             font=dict(
+#                 size=26,  # Set the font size for the title
+#                 # color='blue',  # Optional: Set the font color
+#                 # family='Arial' # Optional: Set the font family
+#             ) 
+#         ),
+#         # xaxis=dict(title='Period (kyr)', showgrid=True),
+#         # yaxis=dict(title=df2.loc[0, (selected_metric, 'variable')], showgrid=False),
+#         legend=dict(
+#             orientation="h",
+#             yanchor="bottom",
+#             y=-0.2,
+#             xanchor="left",
+#             x=0
+#         )
+#     )
+#     # Update x/y labels 
+#     fig.update_xaxes(title_text="Period (kyr)")
+#     fig.update_yaxes(title_text="Spectral power (a.u.)")
+
+#     return fig
 
 
-# Delete old scalograms
-@app.callback(
-    Input('metric-dropdown', 'value')
-)
-def delete_old_plots(selected_metric):
+# # PyleoCLim Plot Callback
+# @app.callback(
+#     Output('pyleo-plot', 'src'),
+#     Input('metric-dropdown', 'value'),
+#     Input('smooth-checkbox', 'value'),
+#     Input('range', 'value')
+# )
+# def update_pyleo_plot(selected_metric, smooth, lam):
+#     if selected_metric is None:
+#         return ''
+
+#     # Extract selected data
+#     age = df[(selected_metric, 'age')].to_numpy()
+#     data = df[(selected_metric, 'data')].to_numpy()
+#     y_invert = df2.loc[0, (selected_metric, 'y_invert')]
+#     name = df2.loc[0,(selected_metric, 'name')]
+#     variable = df2.loc[0,(selected_metric, 'variable')]
+
+#     if smooth:
+#         # apply smoothing 
+#         age, data = plotting.smoothing(age, data, lam)
+
+#     # only use past 1.5 Ma
+#     mask = age <= 1500
+#     age = age[mask]
+#     data = data[mask]
+
+#     # create figure with pyleoclim
+#     file_path = plotting.pyleo_plot(age, data, y_invert, variable, name)
+
+#     return file_path
+
+
+# # Delete old scalograms
+# @app.callback(
+#     Input('metric-dropdown', 'value')
+# )
+# def delete_old_plots(selected_metric):
     print('Delte function called...')
     for fname in os.listdir('assets/'):
         if fname.startswith("pyleo_plot"):
